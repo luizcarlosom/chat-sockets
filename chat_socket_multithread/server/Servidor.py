@@ -1,11 +1,12 @@
 import socket
 import threading
-import os
+
+from colorama import Style, Fore, Back
 
 HOST = '127.0.0.1'
 PORT = 8080
 
-def handle_client(conn):
+def handle_client(conn, client_name):
     while True:
         try:
             data = conn.recv(1024)
@@ -20,24 +21,27 @@ def handle_client(conn):
                         if file_data == b"EOF":
                             break
                         file.write(file_data)
-                print(f"Arquivo {file_name} recebido.")
+                print(Fore.GREEN + f"Arquivo {file_name} recebido." + Style.RESET_ALL)
             else:
-                print(data.decode())
+                print(Fore.GREEN + f'{client_name}: {data.decode()}'+ Style.RESET_ALL)
         except:
             break
 
     conn.close()
-    print("Conexão encerrada com o cliente")
+    print(Fore.RED + "Conexão encerrada com o cliente" + Style.RESET_ALL)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
     server_socket.bind((HOST, PORT))
     server_socket.listen()
-    print("Servidor esperando por conexões...")
+    print(Fore.BLUE + "Servidor esperando por conexões..." + Style.RESET_ALL)
 
     conn, addr = server_socket.accept()
-    print(f"Conectado a: {addr}")
+    client_name = conn.recv(1024)
+    client_name_decode = client_name.decode()
 
-    threading.Thread(target=handle_client, args=(conn,)).start()
+    print(Fore.YELLOW + f'Você foi conectado com {client_name_decode} no endereço: {addr}' + Style.RESET_ALL)
+
+    threading.Thread(target=handle_client, args=(conn, client_name_decode)).start()
 
     while True:
         message = input()
@@ -46,4 +50,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             break
 
     conn.close()
-    print("Conexão encerrada.")
+    print(Fore.RED + "Conexão encerrada." + Style.RESET_ALL)

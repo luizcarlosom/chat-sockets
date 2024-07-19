@@ -2,6 +2,10 @@ import socket
 import threading
 import os
 
+from colorama import init, Style, Fore
+
+init(autoreset=True)
+
 HOST = '127.0.0.1'
 PORT = 8080
 
@@ -11,7 +15,7 @@ def receive_messages(client_socket):
             data = client_socket.recv(1024)
             if not data:
                 break
-            print(data.decode())
+            print(Fore.GREEN + f'Servidor: {data.decode()}' + Style.RESET_ALL)
         except:
             break
 
@@ -22,12 +26,28 @@ def send_files(client_socket, file_path):
             while (chunk := file.read(1024)):
                 client_socket.sendall(chunk)
         client_socket.sendall(b"EOF")
-        print("Arquivo enviado.")
+        print(Fore.GREEN + "Arquivo enviado." + Style.RESET_ALL)
     else:
-        print("Arquivo não encontrado.")
+        print(Fore.RED + "Arquivo não encontrado." + Style.RESET_ALL)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+    client_name = input(Fore.BLUE + "Digite seu nome: " + Style.RESET_ALL)
+
     client_socket.connect((HOST, PORT))
+    client_socket.sendall(client_name.encode())
+
+    print(Fore.YELLOW + f'{client_name}, você foi conectado com o servidor!' + Style.RESET_ALL)
+    
+    information_message = '''
+        (= Instruções do Chat =)
+
+        * Para encerrar a comunicação digite 'xau'
+        
+        * Para enviar um arquivo inicie a mensagem com 'sendfile'. 
+            ex: sendfile ../Algoritmo de Dijkstra.pdf
+    '''
+
+    print(Fore.YELLOW + information_message + Style.RESET_ALL)
 
     threading.Thread(target=receive_messages, args=(client_socket,)).start()
 
@@ -43,4 +63,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
         if message == "xau":
             break
 
-print("Conexão encerrada.")
+print(Fore.RED + "Conexão encerrada." + Style.RESET_ALL)
